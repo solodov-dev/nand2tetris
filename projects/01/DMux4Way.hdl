@@ -21,3 +21,7 @@ CHIP DMux4Way {
     DMux(in=outDA, sel=sel[0], a=a, b=b);
     DMux(in=outDB, sel=sel[0], a=c, b=d);
 }
+
+0x3999 = 0011 1001 1001 1001
+0x4000 = 0100 0000 0000 0000
+0x6000 = 0110 0000 0000 0000
