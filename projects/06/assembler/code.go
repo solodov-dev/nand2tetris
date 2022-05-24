@@ -90,7 +90,7 @@ func Comp(command string) (string, error) {
 
 func Jump(command string) (string, error) {
 	switch command {
-	case "":
+	case "null":
 		return "000", nil
 	case "JGT":
 		return "001", nil
