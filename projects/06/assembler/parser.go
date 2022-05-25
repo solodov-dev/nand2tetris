@@ -1,4 +1,4 @@
-package assembler
+package main
 
 import (
 	"bufio"
@@ -96,7 +96,7 @@ func (p *Parser) Jump() string {
 	index := strings.IndexByte(p.currentCommand, ';')
 
 	if index < 0 {
-		return ""
+		return "null"
 	} else {
     index++
   }
