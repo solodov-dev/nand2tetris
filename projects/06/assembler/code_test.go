@@ -45,7 +45,6 @@ func TestJump(t *testing.T) {
 }
 
 func TestComp(t *testing.T) {
-
 	table := map[string]string{
 		"0":   "0101010",
 		"1":   "0111111",

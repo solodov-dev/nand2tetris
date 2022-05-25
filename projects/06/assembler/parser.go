@@ -1,4 +1,3 @@
-// Package parser parses input file and reads it line by line
 package assembler
 
 import (
@@ -28,7 +27,7 @@ type ParserInterface interface {
 	Jump() string
 }
 
-func New(scanner *bufio.Scanner) *Parser {
+func NewParser(scanner *bufio.Scanner) *Parser {
 	return &Parser{scanner, ""}
 }
 
@@ -82,6 +81,8 @@ func (p *Parser) Comp() string {
 	startIndex := strings.IndexByte(p.currentCommand, '=')
   if startIndex < 0 {
     startIndex = 0
+  } else {
+    startIndex++
   }
 
 	endIndex := strings.IndexByte(p.currentCommand, ';')
@@ -93,9 +94,13 @@ func (p *Parser) Comp() string {
 
 func (p *Parser) Jump() string {
 	index := strings.IndexByte(p.currentCommand, ';')
+
 	if index < 0 {
 		return ""
-	}
+	} else {
+    index++
+  }
+
 	return p.currentCommand[index:]
 }
 
