@@ -2,7 +2,7 @@ package main
 
 import (
 	"bufio"
-  "strings"
+	"strings"
 )
 
 type Command int
@@ -16,32 +16,20 @@ const (
 type Parser struct {
 	scanner        *bufio.Scanner
 	currentCommand string
-  lineNumber uint16
-}
-
-type ParserInterface interface {
-	Advance()
-	CommandType() Command
-  HasMoreComands() bool
-	Symbol() string
-	Dest() string
-	Comp() string
-	Jump() string
-  CurrentLine() string
-  CurrentLineNumber() uint16
+	lineNumber     uint16
 }
 
 func NewParser(io *IO) *Parser {
-  scanner := bufio.NewScanner(io.readFile)
+	scanner := bufio.NewScanner(io.readFile)
 	return &Parser{scanner, "", 0}
 }
 
 func (p *Parser) CurrentLineNumber() uint16 {
-  return p.lineNumber
+	return p.lineNumber
 }
 
 func (p *Parser) CurrentLine() string {
-  return p.currentCommand
+	return p.currentCommand
 }
 
 func (p *Parser) HasMoreComands() bool {
@@ -51,17 +39,18 @@ func (p *Parser) HasMoreComands() bool {
 		return false
 	}
 
-	if ignoreNextLine(p) {
+	nextLine := p.scanner.Text()
+	if nextLine == "" || strings.HasPrefix(nextLine, "//") {
 		return p.HasMoreComands()
 	}
 
-  p.lineNumber++
+	p.lineNumber++
 
 	return true
 }
 
 func (p *Parser) Advance() {
-  p.currentCommand = strings.TrimSpace(p.scanner.Text())
+	p.currentCommand = strings.TrimSpace(p.scanner.Text())
 }
 
 func (p *Parser) CommandType() Command {
@@ -94,17 +83,17 @@ func (p *Parser) Dest() string {
 
 func (p *Parser) Comp() string {
 	startIndex := strings.IndexByte(p.currentCommand, '=')
-  if startIndex < 0 {
-    startIndex = 0
-  } else {
-    startIndex++
-  }
+	if startIndex < 0 {
+		startIndex = 0
+	} else {
+		startIndex++
+	}
 
 	endIndex := strings.IndexByte(p.currentCommand, ';')
-  if (endIndex < 0) {
-    return p.currentCommand[startIndex:]
-  }
-  return p.currentCommand[startIndex:endIndex]
+	if endIndex < 0 {
+		return p.currentCommand[startIndex:]
+	}
+	return p.currentCommand[startIndex:endIndex]
 }
 
 func (p *Parser) Jump() string {
@@ -113,16 +102,8 @@ func (p *Parser) Jump() string {
 	if index < 0 {
 		return "null"
 	} else {
-    index++
-  }
+		index++
+	}
 
 	return p.currentCommand[index:]
-}
-
-func ignoreNextLine(p *Parser) bool {
-	nextLine := p.scanner.Text()
-	if nextLine == "" || strings.HasPrefix(nextLine, "//") {
-		return true
-	}
-	return false
 }
