@@ -2,7 +2,7 @@ package main
 
 import (
 	"bufio"
-	"strings"
+  "strings"
 )
 
 type Command int
@@ -16,19 +16,32 @@ const (
 type Parser struct {
 	scanner        *bufio.Scanner
 	currentCommand string
+  lineNumber uint16
 }
 
 type ParserInterface interface {
 	Advance()
 	CommandType() Command
+  HasMoreComands() bool
 	Symbol() string
 	Dest() string
 	Comp() string
 	Jump() string
+  CurrentLine() string
+  CurrentLineNumber() uint16
 }
 
-func NewParser(scanner *bufio.Scanner) *Parser {
-	return &Parser{scanner, ""}
+func NewParser(io *IO) *Parser {
+  scanner := bufio.NewScanner(io.readFile)
+	return &Parser{scanner, "", 0}
+}
+
+func (p *Parser) CurrentLineNumber() uint16 {
+  return p.lineNumber
+}
+
+func (p *Parser) CurrentLine() string {
+  return p.currentCommand
 }
 
 func (p *Parser) HasMoreComands() bool {
@@ -41,6 +54,8 @@ func (p *Parser) HasMoreComands() bool {
 	if ignoreNextLine(p) {
 		return p.HasMoreComands()
 	}
+
+  p.lineNumber++
 
 	return true
 }
