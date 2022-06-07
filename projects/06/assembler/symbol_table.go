@@ -2,9 +2,12 @@ package main
 
 import "errors"
 
-type Table map[string]int
+type SymbolTable struct {
+	table map[string]int
+	addr  int
+}
 
-var table = Table{
+var table = map[string]int{
 	"SP":     0,
 	"LCL":    1,
 	"ARG":    2,
@@ -30,23 +33,29 @@ var table = Table{
 	"KBD":    24576,
 }
 
-func NewSymbolTable() *Table {
-	return &table
+func NewSymbolTable() *SymbolTable {
+	return &SymbolTable{table, 15}
 }
 
-func (t *Table) AddEntry(symbol string, entry int) {
-	(*t)[symbol] = entry
+func (t *SymbolTable) AddEntry(symbol string, entry int) (int) {
+	t.table[symbol] = entry
+  return entry
 }
 
-func (t *Table) Contains(symbol string) bool {
-	_, ok := (*t)[symbol]
+func (t *SymbolTable) NextAddress() (int) {
+  t.addr++
+  return t.addr
+}
+
+func (t *SymbolTable) Contains(symbol string) bool {
+	_, ok := t.table[symbol]
 	return ok
 }
 
-func (t *Table) GetAddress(symbol string) (int, error) {
-  if t.Contains(symbol) {
-    return (*t)[symbol], nil
-  }
+func (t *SymbolTable) GetAddress(symbol string) (int, error) {
+	if t.Contains(symbol) {
+		return t.table[symbol], nil
+	}
 
-  return 0, errors.New("No address associated with the symbol " + symbol)
+	return 0, errors.New("No address associated with the symbol " + symbol)
 }

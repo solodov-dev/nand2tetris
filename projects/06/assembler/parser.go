@@ -32,6 +32,13 @@ func (p *Parser) CurrentLine() string {
 	return p.currentCommand
 }
 
+func (p *Parser) Reset(io *IO) {
+	io.readFile.Seek(0, 0)
+  p.lineNumber = 0
+  p.currentCommand = ""
+	p.scanner = bufio.NewScanner(io.readFile)
+}
+
 func (p *Parser) HasMoreComands() bool {
 	hasCommands := p.scanner.Scan()
 
@@ -40,17 +47,22 @@ func (p *Parser) HasMoreComands() bool {
 	}
 
 	nextLine := p.scanner.Text()
+	p.lineNumber++
 	if nextLine == "" || strings.HasPrefix(nextLine, "//") {
 		return p.HasMoreComands()
 	}
-
-	p.lineNumber++
 
 	return true
 }
 
 func (p *Parser) Advance() {
-	p.currentCommand = strings.TrimSpace(p.scanner.Text())
+  text := p.scanner.Text()
+  index := strings.Index(text, "//")
+  if index > -1 {
+    text = text[:index]
+  }
+  text = strings.TrimSpace(text)
+  p.currentCommand = text
 }
 
 func (p *Parser) CommandType() Command {
@@ -76,7 +88,7 @@ func (p *Parser) Symbol() string {
 func (p *Parser) Dest() string {
 	index := strings.IndexByte(p.currentCommand, '=')
 	if index < 0 {
-		return ""
+		return "null"
 	}
 	return p.currentCommand[:index]
 }

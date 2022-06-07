@@ -62,19 +62,30 @@ var jumpDict = map[string]string{
 
 type Decoder struct {
 	parser *Parser
+  table *SymbolTable
 }
 
-func NewDecoder(p *Parser) *Decoder {
-	return &Decoder{p}
+func NewDecoder(p *Parser, t *SymbolTable) *Decoder {
+	return &Decoder{p, t}
 }
 
 func (d *Decoder) DecodeCCommand() string {
 	comp, cerr := toBinary(d.parser.Comp(), compDict)
+
+	if cerr != nil {
+    log.Fatalf("Cannot read C command %s on line %d \n comp error: %s", d.parser.CurrentLine(), d.parser.CurrentLineNumber(), cerr)
+	}
+
 	dest, derr := toBinary(d.parser.Dest(), destDict)
+
+	if derr != nil {
+    log.Fatalf("Cannot read C command %s on line %d \n dest error: %s", d.parser.CurrentLine(), d.parser.CurrentLineNumber(), derr)
+	}
+
 	jump, jerr := toBinary(d.parser.Jump(), jumpDict)
 
-	if cerr != nil || derr != nil || jerr != nil {
-		log.Fatalf("Cannot read C command %s on line %d", d.parser.CurrentLine(), d.parser.CurrentLineNumber())
+	if jerr != nil {
+    log.Fatalf("Cannot read C command %s on line %d \n jump error: %s", d.parser.CurrentLine(), d.parser.CurrentLineNumber(), jerr)
 	}
 
 	return "111" + comp + dest + jump
@@ -83,10 +94,15 @@ func (d *Decoder) DecodeCCommand() string {
 func (d *Decoder) DecodeACommand() string {
 	symbol := d.parser.Symbol()
 	number, err := strconv.Atoi(symbol)
-
-	if err != nil {
-		log.Fatal("Symbol is not a number. Aborting")
-	}
+       
+  // Not a number
+  if err != nil {
+    number, err = d.table.GetAddress(symbol)
+    // Not in a table
+    if err != nil {
+      number = d.table.AddEntry(symbol, d.table.NextAddress())
+    }
+  }
 
 	binary := strconv.FormatInt(int64(number), 2)
 	padding := strings.Repeat("0", 16-len(binary))
