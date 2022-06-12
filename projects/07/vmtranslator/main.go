@@ -33,4 +33,5 @@ func main() {
 			writer.WriteArithmetic()
 		}
 	}
+  writer.WriteEnd()
 }

@@ -51,6 +51,14 @@ func (w *CodeWriter) WritePush() {
   w.Write(line)
 }
 
+func (w *CodeWriter) WriteEnd() {
+  line := `(END)
+@END
+0;JMP
+`
+  w.Write(line)
+}
+
 func (w *CodeWriter) Write(line string) {
 	_, err := w.output.WriteString(line + "\n")
 

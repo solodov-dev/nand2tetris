@@ -1,5 +1,7 @@
 package main
 
+import "strconv"
+
 // x + y
 func add() string {
 	return twoArgCommand("M=D+M")
@@ -93,23 +95,26 @@ A=M
 M=M+1`
 }
 
+var compareCount = 0
+
 // Compare the last stack value with the compare command
 // If false write 0 to M
 // If true write -1 to M
 func compareCommand(compare string) string {
-	return `@SP
+  compareCount++
+  index := strconv.Itoa(compareCount)
+	return sub() + "\n" + `@SP
 M=M-1
 A=M
 D=M
-@TRUE
+@TRUE` + index + `
 D;` + compare + `
-(FALSE)
 D=0
-@WRITE
+@WRITE` + index +`
 0;JMP
-(TRUE)
+(TRUE` + index +`)
 D=-1
-(WRITE)
+(WRITE` + index +`)
 @SP
 A=M
 M=D
