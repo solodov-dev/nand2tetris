@@ -39,6 +39,7 @@ var patterns = map[Command]*regexp.Regexp{
 type Parser struct {
 	scanner        *bufio.Scanner
 	currentCommand string
+	currentFile    string
 	lineNumber     uint16
 	arg1           string
 	arg2           string
@@ -53,7 +54,7 @@ func NewParser(input string) *Parser {
 
 	scanner := bufio.NewScanner(readFile)
 
-	return &Parser{scanner, "", 0, "", ""}
+	return &Parser{scanner, "", input, 0, "", ""}
 }
 
 func (p *Parser) HasMoreCommands() bool {

@@ -15,7 +15,7 @@ func main() {
 	output := os.Args[2]
 
 	parser := NewParser(input)
-	writer := NewCodeWriter(output, parser)
+	writer := NewCodeWriter(output)
 	defer writer.Close()
 
 	for parser.HasMoreCommands() {
@@ -28,9 +28,9 @@ func main() {
 
 		switch commandType {
 		case C_PUSH:
-			writer.WritePush()
+			writer.WritePush(parser.arg1, parser.arg2, parser.currentFile)
 		case C_ARITHMETIC:
-			writer.WriteArithmetic()
+			writer.WriteArithmetic(parser.arg1)
 		}
 	}
   writer.WriteEnd()

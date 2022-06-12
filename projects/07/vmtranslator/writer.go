@@ -7,62 +7,60 @@ import (
 
 type CodeWriter struct {
 	output *os.File
-	parser *Parser
 }
 
-func NewCodeWriter(output string, p *Parser) *CodeWriter {
+func NewCodeWriter(output string) *CodeWriter {
 	writeFile, err := os.Create(output)
 
 	if err != nil {
 		log.Fatalf("Cannot create new file %s", output)
 	}
 
-	return &CodeWriter{writeFile, p}
+	return &CodeWriter{writeFile}
 }
 
 func (w *CodeWriter) Close() error {
 	return w.output.Close()
 }
 
-func (w *CodeWriter) WriteArithmetic() {
-	command := w.parser.arg1
+func (w *CodeWriter) WriteArithmetic(arg string) {
+	f, ok := Arithmetic[arg]
 
-  f, ok := Arithmetic[command]
+	if !ok {
+		log.Fatalf("Cannot find command %s in arithmetic commands", arg)
+	}
 
-  if !ok {
-    log.Fatalf("Cannot find command %s in arithmetic commands", command)
-  }
-
-  line := f()
+	line := f()
 	w.Write(line)
 }
 
+func (w *CodeWriter) WritePush(segment string, val string, currentFile string) {
+	var line string
 
-func (w *CodeWriter) WritePush() {
-	segment := w.parser.arg1
-	val := w.parser.arg2
-  var line string
+	switch segment {
+	case "constant":
+		line = PushConstant(val)
+	case "static":
+    line = PushStatic(val, currentFile)
+  default:
+    line = Push(segment, val)
+	}
 
-  switch segment {
-  case "constant":
-   line = Push(val)    
-  }
-
-  w.Write(line)
+	w.Write(line)
 }
 
 func (w *CodeWriter) WriteEnd() {
-  line := `(END)
+	line := `(END)
 @END
 0;JMP
 `
-  w.Write(line)
+	w.Write(line)
 }
 
 func (w *CodeWriter) Write(line string) {
 	_, err := w.output.WriteString(line + "\n")
 
 	if err != nil {
-		log.Fatalf("Could not write line %d to a file %s", w.parser.lineNumber, w.output.Name())
+		log.Fatalf("Could not write line %s to a file %s", line, w.output.Name())
 	}
 }

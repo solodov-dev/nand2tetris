@@ -1,6 +1,9 @@
 package main
 
-import "strconv"
+import (
+	"log"
+	"strconv"
+)
 
 // x + y
 func add() string {
@@ -21,36 +24,36 @@ func neg() string {
 // true -1
 // false 0
 func eq() string {
-  return compareCommand("JEQ")
+	return compareCommand("JEQ")
 }
 
 // if x > y
 // true -1
 // false 0
 func gt() string {
-  return compareCommand("JGT")
+	return compareCommand("JGT")
 }
 
 // if x < y
 // true -1
 // false 0
 func lt() string {
-  return compareCommand("JLT")
+	return compareCommand("JLT")
 }
 
 // x and y
 func and() string {
- return twoArgCommand("M=M&D")
+	return twoArgCommand("M=M&D")
 }
 
 // x or y
 func or() string {
- return twoArgCommand("M=M|D")
+	return twoArgCommand("M=M|D")
 }
 
 // not y
 func not() string {
- return oneArgCommand("M=!M")
+	return oneArgCommand("M=!M")
 }
 
 // Create a two arg command on the stack
@@ -101,8 +104,8 @@ var compareCount = 0
 // If false write 0 to M
 // If true write -1 to M
 func compareCommand(compare string) string {
-  compareCount++
-  index := strconv.Itoa(compareCount)
+	compareCount++
+	index := strconv.Itoa(compareCount)
 	return sub() + "\n" + `@SP
 M=M-1
 A=M
@@ -110,11 +113,11 @@ D=M
 @TRUE` + index + `
 D;` + compare + `
 D=0
-@WRITE` + index +`
+@WRITE` + index + `
 0;JMP
-(TRUE` + index +`)
+(TRUE` + index + `)
 D=-1
-(WRITE` + index +`)
+(WRITE` + index + `)
 @SP
 A=M
 M=D
@@ -126,19 +129,53 @@ var Arithmetic = map[string]func() string{
 	"add": add,
 	"sub": sub,
 	"neg": neg,
-  "eq": eq,
-  "lt": lt,
-  "gt": gt,
-  "and": and,
-  "or": or,
-  "not": not,
+	"eq":  eq,
+	"lt":  lt,
+	"gt":  gt,
+	"and": and,
+	"or":  or,
+	"not": not,
 }
 
-// Push pushes value val onto stack
-func Push(val string) string {
- return `@` + val + `
+// PushConstant pushes value val onto stack
+func PushConstant(val string) string {
+	return `@` + val + `
 D=A
-@SP
+` + toStack()
+}
+
+func PushStatic(index string, filename string) string {
+	return `@` + filename + `.` + index + `
+D=M
+` + toStack()
+}
+
+func Push(segment string, index string) string {
+  base := map[string]string {
+    "local": "@LCL",
+    "argument": "@ARG",
+    "this": "@THIS",
+    "that": "@THAT",
+    "pointer": "@R3",
+    "temp": "@R5",
+  }
+
+  seg, ok := base[segment]
+
+  if !ok {
+    log.Fatalf("Segment %s is not in known segments list", segment)
+  }
+
+	return `@` + seg + ` 
+D=M
+@` + index + `
+A=D+A
+D=M` + toStack()
+}
+
+// Pushes the contents of D register to stack
+func toStack() string {
+	return `@SP
 A=M
 M=D
 @SP
