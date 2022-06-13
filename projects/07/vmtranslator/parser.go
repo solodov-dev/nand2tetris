@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 )
@@ -53,8 +54,10 @@ func NewParser(input string) *Parser {
 	}
 
 	scanner := bufio.NewScanner(readFile)
+  basename := filepath.Base(input)
+  nameWithoutSuffix := strings.TrimSuffix(basename, filepath.Ext(basename))
 
-	return &Parser{scanner, "", input, 0, "", ""}
+	return &Parser{scanner, "", nameWithoutSuffix, 0, "", ""}
 }
 
 func (p *Parser) HasMoreCommands() bool {
