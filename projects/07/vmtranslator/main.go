@@ -31,7 +31,9 @@ func main() {
 			writer.WritePush(parser.arg1, parser.arg2, parser.currentFile)
 		case C_ARITHMETIC:
 			writer.WriteArithmetic(parser.arg1)
+		case C_POP:
+			writer.WritePop(parser.arg1, parser.arg2, parser.currentFile)
 		}
 	}
-  writer.WriteEnd()
+	writer.WriteEnd()
 }

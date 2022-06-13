@@ -41,9 +41,30 @@ func (w *CodeWriter) WritePush(segment string, val string, currentFile string) {
 	case "constant":
 		line = PushConstant(val)
 	case "static":
-    line = PushStatic(val, currentFile)
-  default:
-    line = Push(segment, val)
+		line = PushStatic(val, currentFile)
+	case "pointer":
+		line = PushTempPointer(val, 3)
+	case "temp":
+		line = PushTempPointer(val, 5)
+	default:
+		line = Push(segment, val)
+	}
+
+	w.Write(line)
+}
+
+func (w *CodeWriter) WritePop(segment string, val string, currentFile string) {
+	var line string
+
+	switch segment {
+	case "static":
+		line = PopStatic(val, currentFile)
+	case "pointer":
+		line = PopTempPointer(val, 3)
+	case "temp":
+		line = PopTempPointer(val, 5)
+	default:
+		line = Pop(segment, val)
 	}
 
 	w.Write(line)
