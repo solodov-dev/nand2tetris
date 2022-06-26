@@ -33,6 +33,12 @@ func main() {
 			writer.WriteArithmetic(parser.arg1)
 		case C_POP:
 			writer.WritePop(parser.arg1, parser.arg2, parser.currentFile)
+		case C_LABEL:
+			writer.WriteLabel(parser.arg1, parser.currentFunction)
+		case C_GOTO:
+			writer.WriteGoTo(parser.arg1, parser.currentFunction)
+		case C_IF:
+			writer.WriteIfGoTo(parser.arg1, parser.currentFunction)
 		}
 	}
 	writer.WriteEnd()

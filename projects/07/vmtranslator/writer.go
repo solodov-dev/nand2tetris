@@ -73,8 +73,8 @@ func (w *CodeWriter) WritePop(segment string, val string, currentFile string) {
 func (w *CodeWriter) WriteEnd() {
 	line := `(END)
 @END
-0;JMP
-`
+0;JMP`
+
 	w.Write(line)
 }
 
@@ -84,4 +84,25 @@ func (w *CodeWriter) Write(line string) {
 	if err != nil {
 		log.Fatalf("Could not write line %s to a file %s", line, w.output.Name())
 	}
+}
+
+func (w *CodeWriter) WriteLabel(label string, f string) {
+	line := `(` + f + `$` + label + `)`
+	w.Write(line)
+}
+
+func (w *CodeWriter) WriteGoTo(label string, f string) {
+	line := `@` + f + `$` + label + `
+0;JMP`
+
+	w.Write(line)
+}
+
+// False = 0; True anything else
+func (w *CodeWriter) WriteIfGoTo(label string, f string) {
+	line := popStackToD() + `
+@` + f + `$` + label + `
+D;JNE`
+
+	w.Write(line)
 }

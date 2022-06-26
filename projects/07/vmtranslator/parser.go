@@ -38,12 +38,13 @@ var patterns = map[Command]*regexp.Regexp{
 }
 
 type Parser struct {
-	scanner        *bufio.Scanner
-	currentCommand string
-	currentFile    string
-	lineNumber     uint16
-	arg1           string
-	arg2           string
+	scanner         *bufio.Scanner
+	currentCommand  string
+	currentFile     string
+	currentFunction string
+	lineNumber      uint16
+	arg1            string
+	arg2            string
 }
 
 func NewParser(input string) *Parser {
@@ -54,10 +55,10 @@ func NewParser(input string) *Parser {
 	}
 
 	scanner := bufio.NewScanner(readFile)
-  basename := filepath.Base(input)
-  nameWithoutSuffix := strings.TrimSuffix(basename, filepath.Ext(basename))
+	basename := filepath.Base(input)
+	nameWithoutSuffix := strings.TrimSuffix(basename, filepath.Ext(basename))
 
-	return &Parser{scanner, "", nameWithoutSuffix, 0, "", ""}
+	return &Parser{scanner, "", nameWithoutSuffix, "", 0, "", ""}
 }
 
 func (p *Parser) HasMoreCommands() bool {
@@ -96,6 +97,11 @@ func (p *Parser) ParseCommand() (Command, error) {
 			} else {
 				p.arg2 = ""
 			}
+
+      // Save current function name
+      if commandType == C_FUNCTION {
+        p.currentFunction = p.arg1
+      }
 
 			return commandType, nil
 		}

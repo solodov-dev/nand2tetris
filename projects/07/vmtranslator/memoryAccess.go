@@ -106,8 +106,7 @@ M=D`
 func PopStatic(index string, filename string) string {
 	return popStackToD() + `
 @` + filename + `.` + index + `
-M=D
-`
+M=D`
 }
 
 // Pops stack and stores the value in D
