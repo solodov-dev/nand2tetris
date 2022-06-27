@@ -34,7 +34,7 @@ var patterns = map[Command]*regexp.Regexp{
 	C_IF:         regexp.MustCompile(`^if-goto (\w+)$`),
 	C_LABEL:      regexp.MustCompile(`^label (\w+)$`),
 	C_RETURN:     regexp.MustCompile(`^return$`),
-	C_CALL:       regexp.MustCompile(`^call (\w+) (\w+)$`),
+	C_CALL:       regexp.MustCompile(`^call ([\w.]+) (\w+)$`),
 }
 
 type Parser struct {

@@ -7,7 +7,8 @@ import (
 )
 
 type CodeWriter struct {
-	output *os.File
+	output    *os.File
+	returnIdx int
 }
 
 func NewCodeWriter(output string) *CodeWriter {
@@ -17,7 +18,7 @@ func NewCodeWriter(output string) *CodeWriter {
 		log.Fatalf("Cannot create new file %s", output)
 	}
 
-	return &CodeWriter{writeFile}
+	return &CodeWriter{writeFile, 0}
 }
 
 func (w *CodeWriter) Close() error {
@@ -192,4 +193,69 @@ A=M
 0;JMP`
 
 	w.Write(line)
+}
+
+func (w *CodeWriter) nextCount() string {
+	w.returnIdx++
+	return strconv.Itoa(w.returnIdx)
+}
+
+func (w *CodeWriter) IncrementStackPointer() string {
+	return `@SP
+M=M+1`
+}
+
+func (w *CodeWriter) SavePointer(p string) string {
+	return `@` + p + `
+D=M
+@SP
+A=M
+M=D`
+}
+
+func (w *CodeWriter) WriteCall(f string, nArgs string) {
+	count := w.nextCount()
+
+	line := `@SP
+D=M
+@R13
+M=D
+@RETURN_` + count + `
+D=A
+@SP
+A=M
+M=D
+` + w.IncrementStackPointer() + `
+` + w.SavePointer("LCL") + `
+` + w.IncrementStackPointer() + `
+` + w.SavePointer("ARG") + `
+` + w.IncrementStackPointer() + `
+` + w.SavePointer("THIS") + `
+` + w.IncrementStackPointer() + `
+` + w.SavePointer("THAT") + `
+` + w.IncrementStackPointer() + `
+@R13
+D=M
+@` + nArgs + `
+D=D-A
+@ARG
+M=D
+@SP
+D=M
+@LCL
+M=D
+@` + f + `
+0;JMP
+(RETURN_ ` + count + `)`
+
+	w.Write(line)
+}
+
+func (w *CodeWriter) WriteInit(callSysInit bool) {
+	w.Write("@256\nD=A\n@SP\nM=D\n")
+	// if sys.vm provided call Sys.init 0
+	if callSysInit {
+		w.WriteCall("Sys.init", "0")
+		w.Write("0;JMP\n")
+	}
 }
