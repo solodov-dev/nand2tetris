@@ -30,7 +30,7 @@ var patterns = map[Command]*regexp.Regexp{
 	C_POP:        regexp.MustCompile(`^pop (\w+) (\w+)$`),
 	C_PUSH:       regexp.MustCompile(`^push (\w+) (\w+)$`),
 	C_GOTO:       regexp.MustCompile(`^goto (\w+)$`),
-	C_FUNCTION:   regexp.MustCompile(`^function (\w+) (\w+)$`),
+	C_FUNCTION:   regexp.MustCompile(`^function ([\w.]+) (\w+)$`),
 	C_IF:         regexp.MustCompile(`^if-goto (\w+)$`),
 	C_LABEL:      regexp.MustCompile(`^label (\w+)$`),
 	C_RETURN:     regexp.MustCompile(`^return$`),
@@ -90,18 +90,20 @@ func (p *Parser) Advance() {
 func (p *Parser) ParseCommand() (Command, error) {
 	for commandType, regExp := range patterns {
 		if match := regExp.FindStringSubmatch(p.currentCommand); len(match) > 0 {
-			p.arg1 = match[1]
+			if len(match) > 1 {
+				p.arg1 = match[1]
 
-			if len(match) > 2 {
-				p.arg2 = match[2]
-			} else {
-				p.arg2 = ""
+				if len(match) > 2 {
+					p.arg2 = match[2]
+				} else {
+					p.arg2 = ""
+				}
 			}
 
-      // Save current function name
-      if commandType == C_FUNCTION {
-        p.currentFunction = p.arg1
-      }
+			// Save current function name
+			if commandType == C_FUNCTION {
+				p.currentFunction = p.arg1
+			}
 
 			return commandType, nil
 		}

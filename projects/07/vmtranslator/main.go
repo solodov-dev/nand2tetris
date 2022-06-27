@@ -39,6 +39,11 @@ func main() {
 			writer.WriteGoTo(parser.arg1, parser.currentFunction)
 		case C_IF:
 			writer.WriteIfGoTo(parser.arg1, parser.currentFunction)
+		case C_FUNCTION:
+      writer.WriteFunction(parser.arg1, parser.arg2)
+		case C_RETURN:
+      writer.WriteReturn()
+		// case C_CALL:
 		}
 	}
 	writer.WriteEnd()
