@@ -2,7 +2,6 @@
 D=A
 @SP
 M=D
-
 @SP
 D=M
 @R13
@@ -54,11 +53,10 @@ D=M
 M=D
 @Sys.init
 0;JMP
-(RETURN_ 1)
+(RETURN_1)
 0;JMP
-
 (Main.fibonacci)
-@ARG 
+@ARG
 D=M
 @0
 A=D+A
@@ -111,7 +109,7 @@ D;JNE
 @Main.fibonacci$IF_FALSE
 0;JMP
 (Main.fibonacci$IF_TRUE)
-@ARG 
+@ARG
 D=M
 @0
 A=D+A
@@ -121,16 +119,16 @@ A=M
 M=D
 @SP
 M=M+1
-@LCL  // FRAME=LCL  Save LCL in a temp variable
+@LCL
 D=M
 @R13
 M=D
-@5  // RET=*(FRAME-5)  Put the return address in a temp var R14
+@5
 A=D-A
 D=M
 @R14
 M=D
-@SP // *ARG=pop()  Reposition the return value
+@SP
 M=M-1
 @ARG
 AD=M
@@ -146,7 +144,7 @@ M=D
 D=M
 @R0
 M=D+1
-@R13  // THAT=*(FRAME-1)  Restore THAT of the caller
+@R13
 D=M
 D=D-1
 @R13
@@ -155,7 +153,7 @@ A=D
 D=M
 @THAT
 M=D
-@R13  // THIS=*(FRAME-2)  Restore THIS of the caller
+@R13
 D=M
 D=D-1
 @R13
@@ -164,7 +162,7 @@ A=D
 D=M
 @THIS
 M=D
-@R13  // ARG=*(FRAME-3)  Restore ARG of the caller
+@R13
 D=M
 D=D-1
 @R13
@@ -173,7 +171,7 @@ A=D
 D=M
 @ARG
 M=D
-@R13  // LCL=*(FRAME-4)  Restore LCL of the caller
+@R13
 D=M
 D=D-1
 @R13
@@ -186,7 +184,7 @@ M=D
 A=M
 0;JMP
 (Main.fibonacci$IF_FALSE)
-@ARG 
+@ARG
 D=M
 @0
 A=D+A
@@ -264,8 +262,8 @@ D=M
 M=D
 @Main.fibonacci
 0;JMP
-(RETURN_ 2)
-@ARG 
+(RETURN_2)
+@ARG
 D=M
 @0
 A=D+A
@@ -343,7 +341,7 @@ D=M
 M=D
 @Main.fibonacci
 0;JMP
-(RETURN_ 3)
+(RETURN_3)
 @SP
 M=M-1
 A=M
@@ -354,16 +352,16 @@ A=M
 M=D+M
 @SP
 M=M+1
-@LCL  // FRAME=LCL  Save LCL in a temp variable
+@LCL
 D=M
 @R13
 M=D
-@5  // RET=*(FRAME-5)  Put the return address in a temp var R14
+@5
 A=D-A
 D=M
 @R14
 M=D
-@SP // *ARG=pop()  Reposition the return value
+@SP
 M=M-1
 @ARG
 AD=M
@@ -379,7 +377,7 @@ M=D
 D=M
 @R0
 M=D+1
-@R13  // THAT=*(FRAME-1)  Restore THAT of the caller
+@R13
 D=M
 D=D-1
 @R13
@@ -388,7 +386,7 @@ A=D
 D=M
 @THAT
 M=D
-@R13  // THIS=*(FRAME-2)  Restore THIS of the caller
+@R13
 D=M
 D=D-1
 @R13
@@ -397,7 +395,7 @@ A=D
 D=M
 @THIS
 M=D
-@R13  // ARG=*(FRAME-3)  Restore ARG of the caller
+@R13
 D=M
 D=D-1
 @R13
@@ -406,7 +404,7 @@ A=D
 D=M
 @ARG
 M=D
-@R13  // LCL=*(FRAME-4)  Restore LCL of the caller
+@R13
 D=M
 D=D-1
 @R13
@@ -477,7 +475,7 @@ D=M
 M=D
 @Main.fibonacci
 0;JMP
-(RETURN_ 4)
+(RETURN_4)
 (Sys.init$WHILE)
 @Sys.init$WHILE
 0;JMP

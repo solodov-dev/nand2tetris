@@ -7,8 +7,18 @@ import (
 )
 
 type CodeWriter struct {
-	output    *os.File
-	returnIdx int
+	output       *os.File
+	returnIdx    int
+	compareCount int
+}
+
+var BaseAddresses = map[string]string{
+	"local":    "LCL",
+	"argument": "ARG",
+	"this":     "THIS",
+	"that":     "THAT",
+	"pointer":  "R3",
+	"temp":     "R5",
 }
 
 func NewCodeWriter(output string) *CodeWriter {
@@ -18,7 +28,7 @@ func NewCodeWriter(output string) *CodeWriter {
 		log.Fatalf("Cannot create new file %s", output)
 	}
 
-	return &CodeWriter{writeFile, 0}
+	return &CodeWriter{writeFile, 0, 0}
 }
 
 func (w *CodeWriter) Close() error {
@@ -26,58 +36,108 @@ func (w *CodeWriter) Close() error {
 }
 
 func (w *CodeWriter) WriteArithmetic(arg string) {
-	f, ok := Arithmetic[arg]
-
-	if !ok {
-		log.Fatalf("Cannot find command %s in arithmetic commands", arg)
+	switch arg {
+	case "add":
+		w.BinaryCommand("M=D+M")
+	case "sub":
+		w.BinaryCommand("M=M-D")
+	case "neg":
+		w.UnaryCommand("M=-M")
+	case "eq":
+		w.CompareCommand("JEQ")
+	case "gt":
+		w.CompareCommand("JGT")
+	case "lt":
+		w.CompareCommand("JLT")
+	case "and":
+		w.BinaryCommand("M=M&D")
+	case "or":
+		w.BinaryCommand("M=M|D")
+	case "not":
+		w.UnaryCommand("M=!M")
 	}
-
-	line := f()
-	w.Write(line)
 }
 
 func (w *CodeWriter) WritePush(segment string, val string, currentFile string) {
-	var line string
-
 	switch segment {
 	case "constant":
-		line = PushConstant(val)
+		w.NumToD(val)
+		w.PushDToStack()
+		w.IncrementStackPointer()
 	case "static":
-		line = PushStatic(val, currentFile)
+		w.Push(currentFile + "." + val)
 	case "pointer":
-		line = PushTempPointer(val, 3)
+		base, err := strconv.Atoi(val)
+		HandleError(err, "Pointer index is not a value")
+		w.Push(strconv.Itoa(base + 3))
 	case "temp":
-		line = PushTempPointer(val, 5)
+		base, err := strconv.Atoi(val)
+		HandleError(err, "Pointer index is not a value")
+		w.Push(strconv.Itoa(base + 5))
 	default:
-		line = Push(segment, val)
-	}
+		seg, ok := BaseAddresses[segment]
 
-	w.Write(line)
+		if !ok {
+			log.Fatalf("Segment %s is not in known segments list", segment)
+		}
+
+		w.MToD(seg)
+		w.Write("@" + val)
+		w.Write("A=D+A")
+		w.Write("D=M")
+		w.PushDToStack()
+		w.IncrementStackPointer()
+	}
+}
+
+func (w *CodeWriter) Push(val string) {
+	w.MToD(val)
+	w.PushDToStack()
+	w.IncrementStackPointer()
 }
 
 func (w *CodeWriter) WritePop(segment string, val string, currentFile string) {
-	var line string
-
 	switch segment {
 	case "static":
-		line = PopStatic(val, currentFile)
+		w.DecrementStackPointer()
+		w.PopStackToD()
+		w.DToM(currentFile + "." + val)
 	case "pointer":
-		line = PopTempPointer(val, 3)
+		base, err := strconv.Atoi(val)
+		HandleError(err, "Index is not a number")
+		w.DecrementStackPointer()
+		w.PopStackToD()
+		w.DToM(strconv.Itoa(base + 3))
 	case "temp":
-		line = PopTempPointer(val, 5)
+		base, err := strconv.Atoi(val)
+		HandleError(err, "Index is not a number")
+		w.DecrementStackPointer()
+		w.PopStackToD()
+		w.DToM(strconv.Itoa(base + 5))
 	default:
-		line = Pop(segment, val)
+		seg, ok := BaseAddresses[segment]
+
+		if !ok {
+			log.Fatalf("Segment %s is not in known segments list", segment)
+		}
+
+		w.MToD(seg)
+		w.Write("@" + val)
+		w.Write("D=D+A")
+		w.DToM("R13")
+		w.DecrementStackPointer()
+		w.PopStackToD()
+		w.Write("@R13")
+		w.Write("A=M")
+		w.Write("M=D")
 	}
 
-	w.Write(line)
 }
 
 func (w *CodeWriter) WriteEnd() {
-	line := `(END)
-@END
-0;JMP`
-
-	w.Write(line)
+	w.Write("(END)")
+	w.Write("@END")
+  w.UnconditionalJump()
 }
 
 func (w *CodeWriter) Write(line string) {
@@ -89,24 +149,20 @@ func (w *CodeWriter) Write(line string) {
 }
 
 func (w *CodeWriter) WriteLabel(label string, f string) {
-	line := `(` + f + `$` + label + `)`
-	w.Write(line)
+	w.Write("(" + f + "$" + label + ")")
 }
 
 func (w *CodeWriter) WriteGoTo(label string, f string) {
-	line := `@` + f + `$` + label + `
-0;JMP`
-
-	w.Write(line)
+	w.Write("@" + f + "$" + label)
+  w.UnconditionalJump()
 }
 
 // False = 0; True anything else
 func (w *CodeWriter) WriteIfGoTo(label string, f string) {
-	line := popStackToD() + `
-@` + f + `$` + label + `
-D;JNE`
-
-	w.Write(line)
+	w.DecrementStackPointer()
+	w.PopStackToD()
+	w.Write("@" + f + "$" + label)
+	w.Write("D;JNE")
 }
 
 func (w *CodeWriter) WriteFunction(funcName string, numLocals string) {
@@ -119,143 +175,200 @@ func (w *CodeWriter) WriteFunction(funcName string, numLocals string) {
 	line := `(` + funcName + `)`
 
 	for i := 0; i < locals; i++ {
-		line += `
-` + PushConstant("0")
+		w.NumToD("0")
+		w.PushDToStack()
+		w.IncrementStackPointer()
 	}
 
 	w.Write(line)
+}
+
+func (w *CodeWriter) WriteRestore() {
+	w.MToD("R13")
+	w.Write("D=D-1")
+	w.DToM("R13")
+	w.Write("A=D")
+	w.Write("D=M")
 }
 
 func (w *CodeWriter) WriteReturn() {
-	line := `@LCL  // FRAME=LCL  Save LCL in a temp variable
-D=M
-@R13
-M=D
-@5  // RET=*(FRAME-5)  Put the return address in a temp var R14
-A=D-A
-D=M
-@R14
-M=D
-@SP // *ARG=pop()  Reposition the return value
-M=M-1
-@ARG
-AD=M
-@R15
-M=D
-@SP
-A=M
-D=M
-@R15
-A=M
-M=D
-@R2
-D=M
-@R0
-M=D+1
-@R13  // THAT=*(FRAME-1)  Restore THAT of the caller
-D=M
-D=D-1
-@R13
-M=D
-A=D
-D=M
-@THAT
-M=D
-@R13  // THIS=*(FRAME-2)  Restore THIS of the caller
-D=M
-D=D-1
-@R13
-M=D
-A=D
-D=M
-@THIS
-M=D
-@R13  // ARG=*(FRAME-3)  Restore ARG of the caller
-D=M
-D=D-1
-@R13
-M=D
-A=D
-D=M
-@ARG
-M=D
-@R13  // LCL=*(FRAME-4)  Restore LCL of the caller
-D=M
-D=D-1
-@R13
-M=D
-A=D
-D=M
-@LCL
-M=D
-@R14
-A=M
-0;JMP`
-
-	w.Write(line)
-}
-
-func (w *CodeWriter) nextCount() string {
-	w.returnIdx++
-	return strconv.Itoa(w.returnIdx)
-}
-
-func (w *CodeWriter) IncrementStackPointer() string {
-	return `@SP
-M=M+1`
-}
-
-func (w *CodeWriter) SavePointer(p string) string {
-	return `@` + p + `
-D=M
-@SP
-A=M
-M=D`
+	w.MoveMemToMem("LCL", "R13")
+	w.Write("@5")
+	w.Write("A=D-A")
+	w.Write("D=M")
+  w.DToM("R14")
+	w.DecrementStackPointer()
+	w.Write("@ARG")
+	w.Write("AD=M")
+	w.DToM("R15")
+  w.PopStackToD()
+	w.Write("@R15")
+	w.Write("A=M")
+	w.Write("M=D")
+	w.MToD("R2")
+	w.Write("@R0")
+	w.Write("M=D+1")
+	w.WriteRestore()
+	w.DToM("THAT")
+	w.WriteRestore()
+	w.DToM("THIS")
+	w.WriteRestore()
+	w.DToM("ARG")
+	w.WriteRestore()
+	w.DToM("LCL")
+	w.Write("@R14")
+	w.Write("A=M")
+  w.UnconditionalJump()
 }
 
 func (w *CodeWriter) WriteCall(f string, nArgs string) {
-	count := w.nextCount()
+	w.returnIdx++
+	count := strconv.Itoa(w.returnIdx)
 
-	line := `@SP
-D=M
-@R13
-M=D
-@RETURN_` + count + `
-D=A
-@SP
-A=M
-M=D
-` + w.IncrementStackPointer() + `
-` + w.SavePointer("LCL") + `
-` + w.IncrementStackPointer() + `
-` + w.SavePointer("ARG") + `
-` + w.IncrementStackPointer() + `
-` + w.SavePointer("THIS") + `
-` + w.IncrementStackPointer() + `
-` + w.SavePointer("THAT") + `
-` + w.IncrementStackPointer() + `
-@R13
-D=M
-@` + nArgs + `
-D=D-A
-@ARG
-M=D
-@SP
-D=M
-@LCL
-M=D
-@` + f + `
-0;JMP
-(RETURN_ ` + count + `)`
+	w.MoveMemToMem("SP", "R13")
+	w.Write("@RETURN_" + count)
+	w.Write("D=A")
+  w.PushDToStack()
+	w.IncrementStackPointer()
+	w.SavePointer("LCL")
+	w.IncrementStackPointer()
+	w.SavePointer("ARG")
+	w.IncrementStackPointer()
+	w.SavePointer("THIS")
+	w.IncrementStackPointer()
+	w.SavePointer("THAT")
+	w.IncrementStackPointer()
+	w.MToD("R13")
+	w.Write("@" + nArgs)
+	w.Write("D=D-A")
+	w.DToM("ARG")
+	w.MToD("SP")
+	w.DToM("LCL")
+	w.Write("@" + f)
+  w.UnconditionalJump()
+	w.Write("(RETURN_" + count + ")")
+}
 
-	w.Write(line)
+func (w *CodeWriter) SavePointer(p string) {
+	w.MToD(p)
+	w.PushDToStack()
+}
+
+// Pushes the numeric value into D register
+func (w *CodeWriter) NumToD(n string) {
+	w.Write("@" + n)
+	w.Write("D=A")
+}
+
+// Pushes the value located at address adr to D register
+func (w *CodeWriter) MToD(adr string) {
+	w.Write("@" + adr)
+	w.Write("D=M")
+}
+
+// Pushes the value located at D register to address adr
+func (w *CodeWriter) DToM(adr string) {
+	w.Write("@" + adr)
+	w.Write("M=D")
+}
+
+// Pushes value stored in D register to stack
+func (w *CodeWriter) PushDToStack() {
+	w.Write("@SP")
+	w.Write("A=M")
+	w.Write("M=D")
+}
+
+// Pops value stored on a stack to D register
+func (w *CodeWriter) PopStackToD() {
+  w.Write("@SP")
+	w.Write("A=M")
+	w.Write("D=M")
+}
+
+// Moves value from memory A to memory B
+func (w *CodeWriter) MoveMemToMem(memA string, memB string) {
+	w.Write("@" + memA)
+	w.Write("D=M")
+	w.Write("@" + memB)
+	w.Write("M=D")
+}
+
+// Decrements stack pointer
+func (w *CodeWriter) DecrementStackPointer() {
+	w.Write("@SP")
+	w.Write("M=M-1")
+}
+
+// Increments stack pointer
+func (w *CodeWriter) IncrementStackPointer() {
+	w.Write("@SP")
+	w.Write("M=M+1")
+}
+
+// Create a binary command on the stack
+// Puts X in M register and Y in D register
+// Stack pointer points at X
+//
+//         -----------
+//  SP ->  |    x    |    in M
+//         -----------
+//         |    y    |    in D
+//         -----------
+// After command is added stack pointer will point at X + 1
+func (w *CodeWriter) BinaryCommand(cmd string) {
+	w.DecrementStackPointer()
+  w.PopStackToD()
+	w.DecrementStackPointer()
+	w.Write("A=M")
+	w.Write(cmd)
+	w.IncrementStackPointer()
+}
+
+// Create a one arg command on the stack
+// Puts Y in M register
+// Stack pointer points at Y
+//
+//         -----------
+//         |    x    |
+//         -----------
+//  SP ->  |    y    |    in M
+//         -----------
+// After command is added stack pointer will point at X + 1
+func (w *CodeWriter) UnaryCommand(cmd string) {
+	w.DecrementStackPointer()
+	w.Write("A=M")
+	w.Write(cmd)
+	w.IncrementStackPointer()
+}
+
+func (w *CodeWriter) CompareCommand(cmd string) {
+	w.compareCount++
+	index := strconv.Itoa(w.compareCount)
+	w.BinaryCommand("M=M-D")
+	w.DecrementStackPointer()
+  w.PopStackToD()
+	w.Write("@TRUE" + index)
+	w.Write("D;" + cmd)
+	w.Write("D=0")
+	w.Write("@WRITE" + index)
+  w.UnconditionalJump()
+	w.Write("(TRUE" + index + ")")
+	w.Write("D=-1")
+	w.Write("(WRITE" + index + ")")
+  w.PushDToStack()
+	w.IncrementStackPointer()
 }
 
 func (w *CodeWriter) WriteInit(callSysInit bool) {
-	w.Write("@256\nD=A\n@SP\nM=D\n")
+	w.Write("@256\nD=A\n@SP\nM=D")
 	// if sys.vm provided call Sys.init 0
 	if callSysInit {
 		w.WriteCall("Sys.init", "0")
-		w.Write("0;JMP\n")
+    w.UnconditionalJump()
 	}
+}
+
+func (w *CodeWriter) UnconditionalJump() {
+  w.Write("0;JMP")
 }

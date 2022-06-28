@@ -95,8 +95,6 @@ func (p *Parser) ParseCommand() (Command, error) {
 
 				if len(match) > 2 {
 					p.arg2 = match[2]
-				} else {
-					p.arg2 = ""
 				}
 			}
 
@@ -110,12 +108,4 @@ func (p *Parser) ParseCommand() (Command, error) {
 	}
 
 	return C_UNKNOWN, errors.New("Unknown command type")
-}
-
-func (p *Parser) Arg1() string {
-	return p.arg1
-}
-
-func (p *Parser) Arg2() string {
-	return p.arg2
 }

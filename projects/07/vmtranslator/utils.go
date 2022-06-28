@@ -1,6 +1,9 @@
 package main
 
-import "strings"
+import (
+	"log"
+	"strings"
+)
 
 func PathInfo(path string) (name, dir string, isFile bool) {
 	if strings.HasSuffix(path, "/") {
@@ -18,4 +21,10 @@ func PathInfo(path string) (name, dir string, isFile bool) {
 	}
 	isFile = !isDir
 	return
+}
+
+func HandleError(err error, msg string) {
+  if err != nil {
+    log.Fatalf(msg)
+  }
 }

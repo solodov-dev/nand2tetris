@@ -2,7 +2,6 @@
 D=A
 @SP
 M=D
-
 @SP
 D=M
 @R13
@@ -54,11 +53,10 @@ D=M
 M=D
 @Sys.init
 0;JMP
-(RETURN_ 1)
+(RETURN_1)
 0;JMP
-
 (Class1.set)
-@ARG 
+@ARG
 D=M
 @0
 A=D+A
@@ -70,11 +68,12 @@ M=D
 M=M+1
 @SP
 M=M-1
+@SP
 A=M
 D=M
 @Class1.0
 M=D
-@ARG 
+@ARG
 D=M
 @1
 A=D+A
@@ -86,6 +85,7 @@ M=D
 M=M+1
 @SP
 M=M-1
+@SP
 A=M
 D=M
 @Class1.1
@@ -97,16 +97,16 @@ A=M
 M=D
 @SP
 M=M+1
-@LCL  // FRAME=LCL  Save LCL in a temp variable
+@LCL
 D=M
 @R13
 M=D
-@5  // RET=*(FRAME-5)  Put the return address in a temp var R14
+@5
 A=D-A
 D=M
 @R14
 M=D
-@SP // *ARG=pop()  Reposition the return value
+@SP
 M=M-1
 @ARG
 AD=M
@@ -122,7 +122,7 @@ M=D
 D=M
 @R0
 M=D+1
-@R13  // THAT=*(FRAME-1)  Restore THAT of the caller
+@R13
 D=M
 D=D-1
 @R13
@@ -131,7 +131,7 @@ A=D
 D=M
 @THAT
 M=D
-@R13  // THIS=*(FRAME-2)  Restore THIS of the caller
+@R13
 D=M
 D=D-1
 @R13
@@ -140,7 +140,7 @@ A=D
 D=M
 @THIS
 M=D
-@R13  // ARG=*(FRAME-3)  Restore ARG of the caller
+@R13
 D=M
 D=D-1
 @R13
@@ -149,7 +149,7 @@ A=D
 D=M
 @ARG
 M=D
-@R13  // LCL=*(FRAME-4)  Restore LCL of the caller
+@R13
 D=M
 D=D-1
 @R13
@@ -178,6 +178,7 @@ M=D
 M=M+1
 @SP
 M=M-1
+@SP
 A=M
 D=M
 @SP
@@ -186,16 +187,16 @@ A=M
 M=M-D
 @SP
 M=M+1
-@LCL  // FRAME=LCL  Save LCL in a temp variable
+@LCL
 D=M
 @R13
 M=D
-@5  // RET=*(FRAME-5)  Put the return address in a temp var R14
+@5
 A=D-A
 D=M
 @R14
 M=D
-@SP // *ARG=pop()  Reposition the return value
+@SP
 M=M-1
 @ARG
 AD=M
@@ -211,7 +212,7 @@ M=D
 D=M
 @R0
 M=D+1
-@R13  // THAT=*(FRAME-1)  Restore THAT of the caller
+@R13
 D=M
 D=D-1
 @R13
@@ -220,7 +221,7 @@ A=D
 D=M
 @THAT
 M=D
-@R13  // THIS=*(FRAME-2)  Restore THIS of the caller
+@R13
 D=M
 D=D-1
 @R13
@@ -229,7 +230,7 @@ A=D
 D=M
 @THIS
 M=D
-@R13  // ARG=*(FRAME-3)  Restore ARG of the caller
+@R13
 D=M
 D=D-1
 @R13
@@ -238,7 +239,7 @@ A=D
 D=M
 @ARG
 M=D
-@R13  // LCL=*(FRAME-4)  Restore LCL of the caller
+@R13
 D=M
 D=D-1
 @R13
@@ -251,7 +252,7 @@ M=D
 A=M
 0;JMP
 (Class2.set)
-@ARG 
+@ARG
 D=M
 @0
 A=D+A
@@ -263,11 +264,12 @@ M=D
 M=M+1
 @SP
 M=M-1
+@SP
 A=M
 D=M
 @Class2.0
 M=D
-@ARG 
+@ARG
 D=M
 @1
 A=D+A
@@ -279,6 +281,7 @@ M=D
 M=M+1
 @SP
 M=M-1
+@SP
 A=M
 D=M
 @Class2.1
@@ -290,16 +293,16 @@ A=M
 M=D
 @SP
 M=M+1
-@LCL  // FRAME=LCL  Save LCL in a temp variable
+@LCL
 D=M
 @R13
 M=D
-@5  // RET=*(FRAME-5)  Put the return address in a temp var R14
+@5
 A=D-A
 D=M
 @R14
 M=D
-@SP // *ARG=pop()  Reposition the return value
+@SP
 M=M-1
 @ARG
 AD=M
@@ -315,7 +318,7 @@ M=D
 D=M
 @R0
 M=D+1
-@R13  // THAT=*(FRAME-1)  Restore THAT of the caller
+@R13
 D=M
 D=D-1
 @R13
@@ -324,7 +327,7 @@ A=D
 D=M
 @THAT
 M=D
-@R13  // THIS=*(FRAME-2)  Restore THIS of the caller
+@R13
 D=M
 D=D-1
 @R13
@@ -333,7 +336,7 @@ A=D
 D=M
 @THIS
 M=D
-@R13  // ARG=*(FRAME-3)  Restore ARG of the caller
+@R13
 D=M
 D=D-1
 @R13
@@ -342,7 +345,7 @@ A=D
 D=M
 @ARG
 M=D
-@R13  // LCL=*(FRAME-4)  Restore LCL of the caller
+@R13
 D=M
 D=D-1
 @R13
@@ -371,6 +374,7 @@ M=D
 M=M+1
 @SP
 M=M-1
+@SP
 A=M
 D=M
 @SP
@@ -379,16 +383,16 @@ A=M
 M=M-D
 @SP
 M=M+1
-@LCL  // FRAME=LCL  Save LCL in a temp variable
+@LCL
 D=M
 @R13
 M=D
-@5  // RET=*(FRAME-5)  Put the return address in a temp var R14
+@5
 A=D-A
 D=M
 @R14
 M=D
-@SP // *ARG=pop()  Reposition the return value
+@SP
 M=M-1
 @ARG
 AD=M
@@ -404,7 +408,7 @@ M=D
 D=M
 @R0
 M=D+1
-@R13  // THAT=*(FRAME-1)  Restore THAT of the caller
+@R13
 D=M
 D=D-1
 @R13
@@ -413,7 +417,7 @@ A=D
 D=M
 @THAT
 M=D
-@R13  // THIS=*(FRAME-2)  Restore THIS of the caller
+@R13
 D=M
 D=D-1
 @R13
@@ -422,7 +426,7 @@ A=D
 D=M
 @THIS
 M=D
-@R13  // ARG=*(FRAME-3)  Restore ARG of the caller
+@R13
 D=M
 D=D-1
 @R13
@@ -431,7 +435,7 @@ A=D
 D=M
 @ARG
 M=D
-@R13  // LCL=*(FRAME-4)  Restore LCL of the caller
+@R13
 D=M
 D=D-1
 @R13
@@ -509,9 +513,10 @@ D=M
 M=D
 @Class1.set
 0;JMP
-(RETURN_ 2)
+(RETURN_2)
 @SP
 M=M-1
+@SP
 A=M
 D=M
 @5
@@ -581,9 +586,10 @@ D=M
 M=D
 @Class2.set
 0;JMP
-(RETURN_ 3)
+(RETURN_3)
 @SP
 M=M-1
+@SP
 A=M
 D=M
 @5
@@ -639,7 +645,7 @@ D=M
 M=D
 @Class1.get
 0;JMP
-(RETURN_ 4)
+(RETURN_4)
 @SP
 D=M
 @R13
@@ -691,7 +697,7 @@ D=M
 M=D
 @Class2.get
 0;JMP
-(RETURN_ 5)
+(RETURN_5)
 (Sys.init$WHILE)
 @Sys.init$WHILE
 0;JMP
